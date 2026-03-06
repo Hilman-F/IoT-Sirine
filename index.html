@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.tailwindcss.com"></script>
+
+<title>ESP32 Sirine Control</title>
+
+</head>
+
+<body class="bg-slate-900 text-white min-h-screen">
+
+<div class="max-w-4xl mx-auto p-6 space-y-6">
+
+<h1 class="text-3xl font-bold">
+ESP32 Sirine Dashboard
+</h1>
+
+<div class="card">
+
+    <p class="label">NEXT SIRENE</p>
+    
+    <p id="nextEvent" class="text-xl text-blue-400"></p>
+    
+    <p id="countdown" class="text-lg text-yellow-400"></p>
+    
+</div>
+
+<!-- STATUS -->
+<div class="grid md:grid-cols-3 gap-4">
+
+<div class="card">
+<p class="label">ESP32 Status</p>
+<p id="espStatus" class="value text-yellow-400">Checking...</p>
+</div>
+
+<div class="card">
+<p class="label">Relay Manual</p>
+<p id="relayStatus" class="value"></p>
+</div>
+
+<div class="card">
+<p class="label">Mode</p>
+
+<select id="modeSelect" class="input">
+<option value="Auto">Auto</option>
+<option value="Manual">Manual</option>
+</select>
+
+</div>
+
+</div>
+
+<!-- CONTROL -->
+
+<div class="card">
+
+<h2 class="text-lg mb-4">Manual Control</h2>
+
+<div class="flex gap-4">
+
+<button id="btnOn"
+class="btn bg-green-600">
+ON
+</button>
+
+<button id="btnOff"
+class="btn bg-red-600">
+OFF
+</button>
+
+</div>
+
+</div>
+
+<!-- CURRENT TIME -->
+
+<div class="card">
+
+<p class="label">Current Time</p>
+<p id="currentTime" class="value"></p>
+
+</div>
+
+<a href="schedule.html"
+class="btn bg-blue-600 text-center block">
+Pengaturan Jadwal
+</a>
+
+<a href="logs.html"
+class="btn bg-blue-600 text-center block">
+Log Sirine
+</a>
+
+</div>
+
+<script type="module" src="dashboard.js"></script>
+
+</body>
+
+</html>
