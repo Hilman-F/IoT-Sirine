@@ -2,105 +2,87 @@
 <html lang="id">
 
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.tailwindcss.com"></script>
 
-<link rel="stylesheet" href="style.css">
-<script src="https://cdn.tailwindcss.com"></script>
-
-<title>ESP32 Sirine Control</title>
-
+    <title>ESP32 Sirine Control</title>
 </head>
 
 <body class="bg-slate-900 text-white min-h-screen">
+    <div class="max-w-4xl mx-auto p-6 space-y-6">
 
-<div class="max-w-4xl mx-auto p-6 space-y-6">
+        <div class="space-y-2">
+            <h1 class="text-3xl font-bold">ESP32 Sirine Dashboard</h1>
+            <div id="currentTime" class="text-yellow-400"></div>
+        </div>
 
-<h1 class="text-3xl font-bold">
-ESP32 Sirine Dashboard
-</h1>
+    <!-- STATUS -->
+        <div class="grid md:grid-cols-3 gap-4">
+            <div class="card">
+                <p class="label">ESP32 Status</p>
+                <p id="espStatus" class="value text-yellow-400">Checking...</p>
+            </div>
 
-<div class="card">
+            <div id="relayManual" class="card">
+                <p class="label">Relay Manual</p>
+                <p id="relayStatus" class="value"></p>
+            </div>
 
-    <p class="label">NEXT SIRENE</p>
-    
-    <p id="nextEvent" class="text-xl text-blue-400"></p>
-    
-    <p id="countdown" class="text-lg text-yellow-400"></p>
-    
-</div>
+            <div id="relayAuto" class="card">
+                <p class="label">Relay Otomatis</p>
+                <p id="relayAutoStatus" class="value"></p>
+            </div>
 
-<!-- STATUS -->
-<div class="grid md:grid-cols-3 gap-4">
+            <div class="card">
+                <p class="label">Mode</p>
 
-<div class="card">
-<p class="label">ESP32 Status</p>
-<p id="espStatus" class="value text-yellow-400">Checking...</p>
-</div>
+                <select id="modeSelect" class="input">
+                    <option value="Auto">Auto</option>
+                    <option value="Manual">Manual</option>
+                </select>
+            </div>
+        </div>
 
-<div class="card">
-<p class="label">Relay Manual</p>
-<p id="relayStatus" class="value"></p>
-</div>
+        <!-- Last Update Time and NEXT SIRENE -->
+        <div id="autoTimer" class="grid md:grid-cols-2 gap-4">
+            <div class="card">
+                <p class="label">Last Update Time</p>
+                <p id="updateTime" class="value"></p>
+            </div>
+            
+            <div class="card">
+                <p class="label">Next Sirene</p>
+                <div class="flex justify-between">
+                    <p id="nextEvent" class="font-bold text-xl text-blue-400"></p>
+                    <p id="countdown" class="text-base text-yellow-400"></p>
+                </div>
+            </div>
+        </div>
 
-<div class="card">
-<p class="label">Mode</p>
+        <!-- CONTROL -->
 
-<select id="modeSelect" class="input">
-<option value="Auto">Auto</option>
-<option value="Manual">Manual</option>
-</select>
+        <div id="manualControl" class="card">
+            <h2 class="text-lg mb-4">Manual Control</h2>
+            
+            <div class="flex gap-4">
+                <button id="btnOn" class="btn bg-green-600">ON</button>
+                <button id="btnOff" class="btn bg-red-600">OFF</button>
+            </div>
+        </div>
 
-</div>
+        <a href="schedule.html" class="btn bg-blue-600 text-center block">
+            Pengaturan Jadwal
+        </a>
 
-</div>
+        <!-- <a href="logs.html" class="btn bg-blue-600 text-center block">
+            Log Sirine
+        </a> -->
+    </div>
 
-<!-- CONTROL -->
-
-<div class="card">
-
-<h2 class="text-lg mb-4">Manual Control</h2>
-
-<div class="flex gap-4">
-
-<button id="btnOn"
-class="btn bg-green-600">
-ON
-</button>
-
-<button id="btnOff"
-class="btn bg-red-600">
-OFF
-</button>
-
-</div>
-
-</div>
-
-<!-- CURRENT TIME -->
-
-<div class="card">
-
-<p class="label">Current Time</p>
-<p id="currentTime" class="value"></p>
-
-</div>
-
-<a href="schedule.html"
-class="btn bg-blue-600 text-center block">
-Pengaturan Jadwal
-</a>
-
-<a href="logs.html"
-class="btn bg-blue-600 text-center block">
-Log Sirine
-</a>
-
-</div>
-
-<script type="module" src="dashboard.js"></script>
-
+    <script type="module" src="dashboard.js"></script>
 </body>
 
 </html>
