@@ -18,6 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const relayManual = document.getElementById("relayManual");
     const relayAuto = document.getElementById("relayAuto");
     const manualControl = document.getElementById("manualControl");
+
     const updateTime = document.getElementById("updateTime");
     const currentTimeEl = document.getElementById("currentTime");
     const espStatus = document.getElementById("espStatus");
@@ -28,36 +29,45 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let scheduleCache = null;
     let nextEventTime = null;
-    let nextEventInfo = null;
 
     const engines = [
         "Masuk",
+        "MasukSabtu",
         "IstirahatMulai",
         "IstirahatMulaiJumat",
+        "IstirahatMulaiSabtu",
         "IstirahatSelesai",
         "IstirahatSelesaiJumat",
+        "IstirahatSelesaiSabtu",
         "Pulang",
-        "PulangJumat"
+        "PulangJumat",
+        "PulangSabtu"
     ];
-
-    const enginesView = [
-        "Masuk",
-        "Istirahat Mulai",
-        "Istirahat Selesai",
-        "Pulang"
-    ];
+    
+    const engineMap = {
+        Masuk: "Masuk",
+        MasukSabtu: "Masuk",
+        IstirahatMulai: "Istirahat Mulai",
+        IstirahatMulaiJumat: "Istirahat Mulai",
+        IstiraratMulaiSabtu: "Istirahat Mulai",
+        IstirahatSelesai: "Istirahat Selesai",
+        IstirahatSelesaiJumat: "Istirahat Selesai",
+        IstirahatSelesaiSabtu: "Istirahat Selesai",
+        Pulang: "Pulang",
+        PulangJumat: "Pulang",
+        PulangSabtu: "Pulang"
+    };
 
     function mapEngineName(engine){
-        if(engine.includes("IstirahatMulai")) return "Istirahat Mulai";
-        if(engine.includes("IstirahatSelesai")) return "Istirahat Selesai";
-        if(engine.includes("Pulang")) return "Pulang";
-        return engine;
+        return engineMap[engine] || engine;
     }
 
     // ================= ESP32 STATUS =================
     onValue(ref(db,"updateTime"), snap => {
+
         const timeStr = snap.val();
         if(!timeStr) return;
+
         const now = new Date();
         const last = new Date(timeStr.replace(" ","T"));
         const diff = (now-last)/1000;
@@ -71,19 +81,27 @@ document.addEventListener("DOMContentLoaded", () => {
             month:"long",
             day:"numeric"
         });
-        const time = [last.getHours(), last.getMinutes(), last.getSeconds()].map(n=>String(n).padStart(2,"0")).join(":");
+
+        const time = [
+            last.getHours(),
+            last.getMinutes(),
+            last.getSeconds()
+        ].map(n=>String(n).padStart(2,"0")).join(":");
 
         updateTime.innerText = `${date} - ${time} WIB`;
 
         if(scheduleCache){
             updateNextSirene(scheduleCache, now);
         }
+
     });
 
     // ================= MODE =================
     onValue(ref(db,"Mode"), snap => {
+
         const mode = snap.val();
         modeSelect.value = mode;
+
         btnOn.disabled = mode !== "Manual";
         btnOff.disabled = mode !== "Manual";
 
@@ -93,42 +111,56 @@ document.addEventListener("DOMContentLoaded", () => {
             relayAuto.classList.remove("hidden");
             autoTimer.classList.remove("hidden");
             set(ref(db,"relayManual"),false);
-        } else {
+        }
+        else{
             relayAuto.classList.add("hidden");
             autoTimer.classList.add("hidden");
             relayManual.classList.remove("hidden");
             manualControl.classList.remove("hidden");
         }
+
     });
 
     modeSelect.onchange = () => set(ref(db,"Mode"),modeSelect.value);
 
     // ================= RELAY =================
-    onValue(ref(db,"relayManual"), snap => relayStatus.innerText = snap.val() ? "ON" : "OFF");
-    onValue(ref(db,"relayAuto"), snap => relayAutoStatus.innerText = snap.val() ? "ON" : "OFF");
+    onValue(ref(db,"relayManual"), snap =>
+        relayStatus.innerText = snap.val() ? "ON" : "OFF"
+    );
+
+    onValue(ref(db,"relayAuto"), snap =>
+        relayAutoStatus.innerText = snap.val() ? "ON" : "OFF"
+    );
 
     btnOn.onclick = () => set(ref(db,"relayManual"),true);
     btnOff.onclick = () => set(ref(db,"relayManual"),false);
 
     // ================= SCHEDULE =================
     onValue(ref(db,"Schedule"), snap => {
+
         scheduleCache = snap.val();
+
         if(scheduleCache){
-            updateNextSirene(scheduleCache, new Date());
+            updateNextSirene(scheduleCache,new Date());
         }
+
     });
 
     // ================= NEXT SIRENE =================
     function updateNextSirene(schedule, now){
+
         const day = now.getDay();
+
         let nearest = null;
         let nearestTomorrow = null;
 
         Object.keys(schedule).forEach(shift => {
+
             const s = schedule[shift];
             if(s.Status !== "Active") return;
 
             engines.forEach(engine => {
+
                 const e = s[engine];
                 if(!e) return;
                 if(!e.Hari?.[day]) return;
@@ -137,19 +169,23 @@ document.addEventListener("DOMContentLoaded", () => {
                 eventTime.setHours(e.Jam,e.Menit,0,0);
 
                 if(eventTime > now){
+
                     if(!nearest || eventTime < nearest.time){
                         nearest = {shift,engine,time:eventTime};
                     }
+
                     return;
                 }
 
-                // event besok
                 const tomorrow = new Date(eventTime);
                 tomorrow.setDate(tomorrow.getDate()+1);
+
                 if(!nearestTomorrow || tomorrow < nearestTomorrow.time){
                     nearestTomorrow = {shift,engine,time:tomorrow};
                 }
+
             });
+
         });
 
         const next = nearest || nearestTomorrow;
@@ -157,21 +193,23 @@ document.addEventListener("DOMContentLoaded", () => {
         if(!next){
             nextEvent.innerText = "Tidak ada jadwal";
             nextEventTime = null;
-            nextEventInfo = null;
             return;
         }
 
         nextEvent.innerText = `(${next.shift}) ${mapEngineName(next.engine)}`;
         nextEventTime = next.time;
-        nextEventInfo = next;
+
     }
 
     // ================= COUNTDOWN =================
     setInterval(() => {
+
         const now = new Date();
+
         if(scheduleCache){
-            updateNextSirene(scheduleCache, now);
+            updateNextSirene(scheduleCache,now);
         }
+
         if(!nextEventTime) return;
 
         let diff = Math.floor((nextEventTime-now)/1000);
@@ -182,29 +220,35 @@ document.addEventListener("DOMContentLoaded", () => {
         const s = String(diff%60).padStart(2,"0");
 
         countdown.innerText = `${h}:${m}:${s}`;
+
     },1000);
 
     // --------------------------- REALTIME CLOCK
     function updateClock(){
         currentTimeEl.innerText = formatTime(new Date());
     }
+
     setInterval(updateClock,1000);
-    updateClock(); // init
+    updateClock();
 
     // --------------------------- UTILITY
     function formatTime(date){
+
         const day = date.toLocaleDateString("id-ID",{
             weekday:"long",
             year:"numeric",
             month:"long",
             day:"numeric"
         });
+
         const time = [
             date.getHours().toString().padStart(2,"0"),
             date.getMinutes().toString().padStart(2,"0"),
             date.getSeconds().toString().padStart(2,"0")
         ].join(":");
+
         return `${day}, ${time} WIB`;
+
     }
 
 });
