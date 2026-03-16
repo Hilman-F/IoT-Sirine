@@ -49,7 +49,7 @@ document.addEventListener("DOMContentLoaded", () => {
         MasukSabtu: "Masuk",
         IstirahatMulai: "Istirahat Mulai",
         IstirahatMulaiJumat: "Istirahat Mulai",
-        IstiraratMulaiSabtu: "Istirahat Mulai",
+        IstirahatMulaiSabtu: "Istirahat Mulai",
         IstirahatSelesai: "Istirahat Selesai",
         IstirahatSelesaiJumat: "Istirahat Selesai",
         IstirahatSelesaiSabtu: "Istirahat Selesai",
