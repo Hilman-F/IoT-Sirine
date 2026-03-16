@@ -20,22 +20,30 @@ const timeline = document.getElementById("timeline");
 // ---------------------------
 const engines = [
     "Masuk",
+    "MasukSabtu",
     "IstirahatMulai",
     "IstirahatMulaiJumat",
+    "IstirahatMulaiSabtu",
     "IstirahatSelesai",
     "IstirahatSelesaiJumat",
+    "IstirahatSelesaiSabtu",
     "Pulang",
-    "PulangJumat"
+    "PulangJumat",
+    "PulangSabtu"
 ];
 
 const engineMap = {
     Masuk: "Masuk",
+    MasukSabtu: "Masuk",
     IstirahatMulai: "Istirahat Mulai",
     IstirahatMulaiJumat: "Istirahat Mulai",
+    IstirahatMulaiSabtu: "Istirahat Mulai",
     IstirahatSelesai: "Istirahat Selesai",
     IstirahatSelesaiJumat: "Istirahat Selesai",
+    IstirahatSelesaiSabtu: "Istirahat Selesai",
     Pulang: "Pulang",
-    PulangJumat: "Pulang"
+    PulangJumat: "Pulang",
+    PulangSabtu: "Pulang"
 };
 
 const hariList = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
