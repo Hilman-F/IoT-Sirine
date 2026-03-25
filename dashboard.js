@@ -63,38 +63,44 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // ================= ESP32 STATUS =================
-    onValue(ref(db,"updateTime"), snap => {
+    onValue(ref(db, "updateTime"), snap => {
+    const timeStr = snap.val();
+    if (!timeStr) return;
 
-        const timeStr = snap.val();
-        if(!timeStr) return;
+    // 1. Persiapan Tanggal
+    const now = new Date();
+    const last = new Date(timeStr.replace(" ", "T"));
+    
+    // 2. Menghitung selisih waktu dengan aman
+    const diff = (now.getTime() - last.getTime()) / 1000;
+    const isOnline = diff < 20;
 
-        const now = new Date();
-        const last = new Date(timeStr.replace(" ","T"));
-        const diff = (now-last)/1000;
+    // 3. Memperbarui UI Status
+    espStatus.innerText = isOnline ? "ONLINE" : "OFFLINE";
+    espStatus.className = isOnline ? "value text-green-400" : "value text-red-500";
 
-        espStatus.innerText = diff < 20 ? "ONLINE" : "OFFLINE";
-        espStatus.className = diff < 20 ? "value text-green-400" : "value text-red-500";
-
-        const date = now.toLocaleDateString("id-ID",{
-            weekday:"long",
-            year:"numeric",
-            month:"long",
-            day:"numeric"
-        });
-
-        const time = [
-            last.getHours(),
-            last.getMinutes(),
-            last.getSeconds()
-        ].map(n=>String(n).padStart(2,"0")).join(":");
-
-        updateTime.innerText = `${date} - ${time} WIB`;
-
-        if(scheduleCache){
-            updateNextSirene(scheduleCache, now);
-        }
-
+    // 4. Memformat Tanggal & Waktu berdasarkan 'last' (waktu update ESP), BUKAN 'now'
+    const date = last.toLocaleDateString("id-ID", {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric"
     });
+
+    const time = [
+        last.getHours(),
+        last.getMinutes(),
+        last.getSeconds()
+    ].map(n => String(n).padStart(2, "0")).join(":");
+
+    updateTime.innerText = `${date} - ${time} WIB`;
+
+    // 5. Memicu pembaruan jadwal sirene
+    if (scheduleCache) {
+        // Asumsinya updateNextSirene membutuhkan waktu saat ini (now) untuk mengecek apakah sirene harus berbunyi
+        updateNextSirene(scheduleCache, now); 
+    }
+});
 
     // ================= MODE =================
     onValue(ref(db,"Mode"), snap => {
