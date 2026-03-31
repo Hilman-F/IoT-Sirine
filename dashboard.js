@@ -14,14 +14,19 @@ document.addEventListener("DOMContentLoaded", () => {
     const btnOff = document.getElementById("btnOff");
 
     const relayStatus = document.getElementById("relayStatus");
-    const relayAutoStatus = document.getElementById("relayAutoStatus");
     const relayManual = document.getElementById("relayManual");
-    const relayAuto = document.getElementById("relayAuto");
     const manualControl = document.getElementById("manualControl");
+    
+    const durasiSirine = document.getElementById("durasiSirine")
+    const durasiNow = document.getElementById("durasiNow");
+    let lastValue = "";
+    let timeout = null;
+    let isTyping = false;
 
     const updateTime = document.getElementById("updateTime");
     const currentTimeEl = document.getElementById("currentTime");
     const espStatus = document.getElementById("espStatus");
+    const ssid = document.getElementById("SSID");
 
     const autoTimer = document.getElementById("autoTimer");
     const nextEvent = document.getElementById("nextEvent");
@@ -63,44 +68,117 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // ================= ESP32 STATUS =================
-    onValue(ref(db, "updateTime"), snap => {
-    const timeStr = snap.val();
-    if (!timeStr) return;
+    onValue(ref(db,"updateTime"), snap => {
 
-    // 1. Persiapan Tanggal
-    const now = new Date();
-    const last = new Date(timeStr.replace(" ", "T"));
-    
-    // 2. Menghitung selisih waktu dengan aman
-    const diff = (now.getTime() - last.getTime()) / 1000;
-    const isOnline = diff < 20;
+        const timeStr = snap.val();
+        if(!timeStr) return;
 
-    // 3. Memperbarui UI Status
-    espStatus.innerText = isOnline ? "ONLINE" : "OFFLINE";
-    espStatus.className = isOnline ? "value text-green-400" : "value text-red-500";
+        const now = new Date();
+        const last = new Date(timeStr.replace(" ","T"));
+        const diff = (now-last)/1000;
 
-    // 4. Memformat Tanggal & Waktu berdasarkan 'last' (waktu update ESP), BUKAN 'now'
-    const date = last.toLocaleDateString("id-ID", {
-        weekday: "long",
-        year: "numeric",
-        month: "long",
-        day: "numeric"
+        espStatus.innerText = diff < 20 ? "ONLINE" : "OFFLINE";
+        espStatus.className = diff < 20 ? "value text-green-400" : "value text-red-500";
+
+        const date = now.toLocaleDateString("id-ID",{
+            weekday:"long",
+            year:"numeric",
+            month:"long",
+            day:"numeric"
+        });
+
+        const time = [
+            last.getHours(),
+            last.getMinutes(),
+            last.getSeconds()
+        ].map(n=>String(n).padStart(2,"0")).join(":");
+
+        updateTime.innerText = `${date} - ${time} WIB`;
+
+        if(scheduleCache){
+            updateNextSirene(scheduleCache, now);
+        }
+
     });
 
-    const time = [
-        last.getHours(),
-        last.getMinutes(),
-        last.getSeconds()
-    ].map(n => String(n).padStart(2, "0")).join(":");
+    // ================= SSID =================
+    onValue(ref(db,"Status/WiFi_SSID"), snap => {
+        ssid.innerText = snap.val() ? snap.val() : "-"
+    });
 
-    updateTime.innerText = `${date} - ${time} WIB`;
+    // ================= Signal =================
+    onValue(ref(db,"Status/WiFi_RSSI"), snap => {
+        let dbm = snap.val(); // contoh: -55, -70, -80
+        let bars = document.querySelectorAll("#signal .bar");
 
-    // 5. Memicu pembaruan jadwal sirene
-    if (scheduleCache) {
-        // Asumsinya updateNextSirene membutuhkan waktu saat ini (now) untuk mengecek apakah sirene harus berbunyi
-        updateNextSirene(scheduleCache, now); 
-    }
-});
+        // reset semua bar
+        bars.forEach(bar => {
+            bar.classList.remove("active");
+            bar.style.backgroundColor = "#9ca3af";
+        });
+
+        let activeCount = 0;
+        let color = "";
+
+        if (dbm > -60) {
+            // GOOD
+            activeCount = 4;
+            color = "green";
+        } else if (dbm >= -70 && dbm <= -60) {
+            // FAIR
+            activeCount = 2;
+            color = "orange";
+        } else if (dbm < -70) {
+            // POOR
+            activeCount = 1;
+            color = "red";
+        }
+
+        // aktifkan bar sesuai kondisi
+        for (let i = 0; i < activeCount; i++) {
+            bars[i].style.backgroundColor = color;
+            bars[i].classList.add("active");
+        }
+    });
+
+    // ================= Durasi =================
+    onValue(ref(db, "durasiSirine"), (snap) => {
+        const durasi = snap.val() || 0;
+    
+        // Jangan overwrite kalau user lagi ngetik
+        if (!isTyping) {
+            durasiNow.value = durasi;
+        }
+    
+        lastValue = durasi;
+    });
+    
+    // Auto save saat input berubah
+    durasiNow.addEventListener("input", () => {
+        isTyping = true;
+    
+        clearTimeout(timeout);
+    
+        timeout = setTimeout(() => {
+            let newValue = parseInt(durasiNow.value);
+    
+            // validasi sederhana
+            if (isNaN(newValue)) newValue = 0;
+    
+            if (newValue !== lastValue) {
+                set(ref(db, "durasiSirine"), newValue)
+                    .then(() => {
+                        lastValue = newValue;
+                        console.log("Tersimpan");
+                    })
+                    .catch(() => {
+                        console.log("Gagal simpan");
+                    });
+            }
+    
+            isTyping = false;
+        }, 800); // delay biar tidak spam
+    });
 
     // ================= MODE =================
     onValue(ref(db,"Mode"), snap => {
@@ -114,12 +192,12 @@ document.addEventListener("DOMContentLoaded", () => {
         if(mode === "Auto"){
             relayManual.classList.add("hidden");
             manualControl.classList.add("hidden");
-            relayAuto.classList.remove("hidden");
+            durasiSirine.classList.remove("hidden");
             autoTimer.classList.remove("hidden");
             set(ref(db,"relayManual"),false);
         }
         else{
-            relayAuto.classList.add("hidden");
+            durasiSirine.classList.add("hidden");
             autoTimer.classList.add("hidden");
             relayManual.classList.remove("hidden");
             manualControl.classList.remove("hidden");
@@ -132,10 +210,6 @@ document.addEventListener("DOMContentLoaded", () => {
     // ================= RELAY =================
     onValue(ref(db,"relayManual"), snap =>
         relayStatus.innerText = snap.val() ? "ON" : "OFF"
-    );
-
-    onValue(ref(db,"relayAuto"), snap =>
-        relayAutoStatus.innerText = snap.val() ? "ON" : "OFF"
     );
 
     btnOn.onclick = () => set(ref(db,"relayManual"),true);
