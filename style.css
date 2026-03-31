@@ -26,3 +26,23 @@
         border-radius:6px;
         width:100%;
     }
+
+    /* signal */
+    .bar {
+        height: 25%;
+        transition: all 0.3s ease;
+    }
+
+    .bar:nth-child(2) { height: 50%; }
+    .bar:nth-child(3) { height: 75%; }
+    .bar:nth-child(4) { height: 100%; }
+
+    .active {
+        animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+        0% { opacity: 0.6; }
+        50% { opacity: 1; }
+        100% { opacity: 0.6; }
+    }
