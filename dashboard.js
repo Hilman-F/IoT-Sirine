@@ -27,6 +27,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const currentTimeEl = document.getElementById("currentTime");
     const espStatus = document.getElementById("espStatus");
     const ssid = document.getElementById("SSID");
+    const signalStatus = document.getElementById("signal-dBm");
 
     const autoTimer = document.getElementById("autoTimer");
     const nextEvent = document.getElementById("nextEvent");
@@ -107,6 +108,22 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // ================= Signal =================
+    onValue(ref(db,"Status/WiFi_RSSI"), snap => {
+        let dbm = snap.val(); // contoh: -55, -70, -80
+        signalStatus.innerText = snap.val() ? snap.val() + " dBm" : "-"
+
+        if (dbm > -60) {
+            // GOOD
+            signalStatus.classList.add("text-green-400");
+        } else if (dbm >= -70 && dbm <= -60) {
+            // FAIR
+            signalStatus.classList.add("text-orange-400");
+        } else if (dbm < -70) {
+            // POOR
+            signalStatus.classList.add("text-red-700");
+        }
+    });
+
     onValue(ref(db,"Status/WiFi_RSSI"), snap => {
         let dbm = snap.val(); // contoh: -55, -70, -80
         let bars = document.querySelectorAll("#signal .bar");
