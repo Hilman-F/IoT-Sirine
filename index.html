@@ -28,15 +28,19 @@
 
             <div class="card">
                 <p class="label">SSID</p>
-                <div class="flex justify-between">
+                <div class="flex justify-between items-center">
                     <p id="SSID" class="value text-green-400"></p>
             
-                    <!-- Signal Icon -->
-                    <div id="signal" class="flex items-end space-x-1 h-6">
-                        <div class="bar w-1 bg-gray-400"></div>
-                        <div class="bar w-1 bg-gray-400"></div>
-                        <div class="bar w-1 bg-gray-400"></div>
-                        <div class="bar w-1 bg-gray-400"></div>
+                    <div class="flex flex-col items-center">
+                        <!-- Signal Icon -->
+                        <div id="signal" class="flex items-end space-x-1 h-6">
+                            <div class="bar w-1 bg-gray-400"></div>
+                            <div class="bar w-1 bg-gray-400"></div>
+                            <div class="bar w-1 bg-gray-400"></div>
+                            <div class="bar w-1 bg-gray-400"></div>
+                        </div>
+
+                        <p id="signal-dBm" class="text-xs mt-1 font-medium"></p>
                     </div>
                 </div>
             </div>
